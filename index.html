@@ -1,0 +1,202 @@
+<!doctype html>
+<html>
+
+<head>
+  <title></title>
+  <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+
+<body>
+  <div id='app'>
+    <v-app>
+      <v-main>
+        <v-container>
+          <v-row>
+            <v-col cols=12>
+              <v-card>
+                <v-card-title>
+                  <canvas id="canv"></canvas>
+                </v-card-title>
+              </v-card>
+              <v-card>
+                <v-btn :disabled="running" @click="start()">Click to start</v-btn>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-main>
+    </v-app>
+  </div>
+  <audio id="myAudio">
+    <source src="beat.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script src='https://code.jquery.com/jquery-3.2.1.min.js'></script>
+  <script src='https://unpkg.com/vue'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js'></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
+
+  <script>
+
+    const app = new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data: {
+        rows: [
+          {
+            name: "One"
+          },
+          {
+            name: "Two"
+          }
+        ],
+        time: 0,
+        up: false,
+        pressure: 0,
+        systolic: 140,
+        diastolic: 100,
+        upRate: 2,
+        downRate: .5,
+        running: false,
+        x: document.getElementById("myAudio"),
+      },
+      mounted() {
+
+      },
+      methods: {
+        start() {
+          this.running = true;
+          this.main();
+        },
+
+        main() {
+          timerID = setTimeout(this.tick, 33);
+          this.time = 0;
+          this.up = false;
+          this.pressure = 0;
+          this.systolic = 140;
+          this.diastolic = 100;
+          this.up = true;
+        },
+        tick() {
+          this.update();
+          this.drawCanvas();
+          timerID = setTimeout(this.tick, 33);
+        },
+        update() {
+          this.canvas = document.getElementById("canv");
+          this.canvas.style.width = 640 + "px"
+          this.canvas.style.height = 480 + "px"
+          this.canvas.width = 640;
+          this.canvas.height = 480;
+          this.time++;
+          if (this.up) {
+            this.pressure += this.upRate;
+            if (this.pressure > 200)
+              this.up = false;
+          }
+          else {
+            if (this.pressure < this.systolic && this.pressure > this.diastolic) {
+              this.x.play();
+            }
+            if (this.pressure > 0)
+              this.pressure -= this.downRate;
+            else
+            {
+              this.pressure = 0;
+              this.running = false;
+            }
+          }
+
+        },
+        drawCanvas() {
+          var ctx = this.canvas.getContext("2d");
+
+          ctx.fillStyle = "white";
+          ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+          let radius = 200;
+
+          ctx.save();
+          ctx.translate(radius + 5, radius + 5);
+
+          ctx.strokeStye = "black";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+          ctx.stroke();
+
+          let a = .95;
+          let aa = .9
+          let b = .85;
+          let c = .78;
+          let d = .02
+          let e = .3;
+
+          for (let i = 20; i <= 300; i += 10) {
+            let angle = (i / 320) * Math.PI * 2 + Math.PI / 2;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(angle) * radius * a, Math.sin(angle) * radius * a)
+            ctx.lineTo(Math.cos(angle) * radius * b, Math.sin(angle) * radius * b)
+            ctx.stroke()
+
+            if (i % 20 == 0) {
+              ctx.fillStyle = "black"
+              let text = "" + i;
+              let width = ctx.measureText(text).width;
+              ctx.fillText(i, Math.cos(angle) * radius * c - width / 2, Math.sin(angle) * radius * c);
+            }
+          }
+          for (let i = 20; i <= 300; i += 2) {
+            let angle = (i / 320) * Math.PI * 2 + Math.PI / 2;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(angle) * radius * a, Math.sin(angle) * radius * a)
+            ctx.lineTo(Math.cos(angle) * radius * aa, Math.sin(angle) * radius * aa)
+            ctx.stroke()
+          }
+          ctx.fillStyle = "black"
+          let text = "mmHg";
+          let width = ctx.measureText(text).width;
+          ctx.fillText("mmHg", -width / 2, radius * .9);
+
+
+          ctx.beginPath();
+          ctx.arc(0, 0, 10, 0, 2 * Math.PI);
+          ctx.fill();
+
+          ctx.beginPath();
+          //Figure out the angle
+          let angle = this.pressure;
+          let drawAngle = (angle / 320) * Math.PI * 2 + Math.PI / 2
+          let dx = Math.cos(drawAngle);
+          let dy = Math.sin(drawAngle);
+          let px = -dy;
+          let py = dx;
+          ctx.moveTo(Math.cos(drawAngle) * radius * a, Math.sin(drawAngle) * radius * a);
+          ctx.lineTo(Math.cos(drawAngle + Math.PI) * radius * e + px * radius * d, Math.sin(drawAngle + Math.PI) * radius * e + py * radius * d);
+          ctx.lineTo(Math.cos(drawAngle + Math.PI) * radius * e - px * radius * d, Math.sin(drawAngle + Math.PI) * radius * e - py * radius * d);
+          ctx.lineTo(Math.cos(drawAngle) * radius * a, Math.sin(drawAngle) * radius * a);
+          ctx.fill();
+
+          ctx.restore()
+
+
+        }
+      }
+
+    });
+
+
+
+
+
+
+  </script>
+</body>
+
+</html>
