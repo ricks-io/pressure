@@ -20,7 +20,9 @@
           </v-row>
           <v-row>
             <v-col cols=12>
-              <v-btn :disabled="running" @click="start()">Click to start</v-btn>
+              <v-btn :disabled="running" @click="start(1)">Trial One</v-btn>
+              <v-btn :disabled="running" @click="start(2)">Trial Two</v-btn>
+              <v-btn :disabled="running" @click="start(3)">Trial Three</v-btn>
             </v-col>
           </v-row>
         </v-container>
@@ -56,29 +58,40 @@
         pressure: 0,
         systolic: 140,
         diastolic: 100,
+        maxPressure: 170,
         upRate: 2,
         downRate: .4,
         running: false,
         radius: 200,
         x: document.getElementById("myAudio"),
         timerID: 0,
+        trials : [
+          [],//No trial 0
+          [145, 80],
+          [162,54],
+          [122, 64],
+        ]
       },
       mounted() {
         this.timerID = setInterval(this.tick, 33);
 
       },
       methods: {
-        start() {
+        start(trial) {
+          if (trial)
+            [this.systolic, this.diastolic] = this.trials[trial];
+          else
+            [this.systolic, this.diastolic] = [100, 60];
+
           this.running = true;
           this.main();
         },
+
 
         main() {
           this.time = 0;
           //this.up = false;
           this.pressure = 0;
-          this.systolic = 98;
-          this.diastolic = 60;
           this.up = true;
         },
         tick() {
@@ -96,7 +109,7 @@
           this.time++;
           if (this.up) {
             this.pressure += this.upRate;
-            if (this.pressure > 200)
+            if (this.pressure > this.maxPressure)
               this.up = false;
           }
           else {
