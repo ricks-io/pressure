@@ -15,14 +15,12 @@
         <v-container>
           <v-row>
             <v-col cols=12>
-              <v-card>
-                <v-card-title>
-                  <canvas id="canv"></canvas>
-                </v-card-title>
-              </v-card>
-              <v-card>
-                <v-btn :disabled="running" @click="start()">Click to start</v-btn>
-              </v-card>
+              <canvas id="canv"></canvas>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols=12>
+              <v-btn :disabled="running" @click="start()">Click to start</v-btn>
             </v-col>
           </v-row>
         </v-container>
@@ -59,11 +57,14 @@
         systolic: 140,
         diastolic: 100,
         upRate: 2,
-        downRate: .5,
+        downRate: .4,
         running: false,
+        radius: 200,
         x: document.getElementById("myAudio"),
+        timerID: 0,
       },
       mounted() {
+        this.timerID = setInterval(this.tick, 33);
 
       },
       methods: {
@@ -73,25 +74,25 @@
         },
 
         main() {
-          timerID = setTimeout(this.tick, 33);
           this.time = 0;
-          this.up = false;
+          //this.up = false;
           this.pressure = 0;
-          this.systolic = 140;
-          this.diastolic = 100;
+          this.systolic = 98;
+          this.diastolic = 60;
           this.up = true;
         },
         tick() {
+          if (this.running);
           this.update();
           this.drawCanvas();
-          timerID = setTimeout(this.tick, 33);
         },
         update() {
           this.canvas = document.getElementById("canv");
-          this.canvas.style.width = 640 + "px"
-          this.canvas.style.height = 480 + "px"
-          this.canvas.width = 640;
-          this.canvas.height = 480;
+          let size = (this.radius * 2 + 10)
+          this.canvas.style.width = size + "px"
+          this.canvas.style.height = size + "px"
+          this.canvas.width = size;
+          this.canvas.height = size;
           this.time++;
           if (this.up) {
             this.pressure += this.upRate;
@@ -104,10 +105,10 @@
             }
             if (this.pressure > 0)
               this.pressure -= this.downRate;
-            else
-            {
+            else {
               this.pressure = 0;
               this.running = false;
+              //clearTimeout(this.timerID)
             }
           }
 
@@ -118,15 +119,15 @@
           ctx.fillStyle = "white";
           ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-          let radius = 200;
+
 
           ctx.save();
-          ctx.translate(radius + 5, radius + 5);
+          ctx.translate(this.radius + 5, this.radius + 5);
 
           ctx.strokeStye = "black";
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+          ctx.arc(0, 0, this.radius, 0, 2 * Math.PI);
           ctx.stroke();
 
           let a = .95;
@@ -140,29 +141,29 @@
             let angle = (i / 320) * Math.PI * 2 + Math.PI / 2;
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(Math.cos(angle) * radius * a, Math.sin(angle) * radius * a)
-            ctx.lineTo(Math.cos(angle) * radius * b, Math.sin(angle) * radius * b)
+            ctx.moveTo(Math.cos(angle) * this.radius * a, Math.sin(angle) * this.radius * a)
+            ctx.lineTo(Math.cos(angle) * this.radius * b, Math.sin(angle) * this.radius * b)
             ctx.stroke()
 
             if (i % 20 == 0) {
               ctx.fillStyle = "black"
               let text = "" + i;
               let width = ctx.measureText(text).width;
-              ctx.fillText(i, Math.cos(angle) * radius * c - width / 2, Math.sin(angle) * radius * c);
+              ctx.fillText(i, Math.cos(angle) * this.radius * c - width / 2, Math.sin(angle) * this.radius * c);
             }
           }
           for (let i = 20; i <= 300; i += 2) {
             let angle = (i / 320) * Math.PI * 2 + Math.PI / 2;
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(Math.cos(angle) * radius * a, Math.sin(angle) * radius * a)
-            ctx.lineTo(Math.cos(angle) * radius * aa, Math.sin(angle) * radius * aa)
+            ctx.moveTo(Math.cos(angle) * this.radius * a, Math.sin(angle) * this.radius * a)
+            ctx.lineTo(Math.cos(angle) * this.radius * aa, Math.sin(angle) * this.radius * aa)
             ctx.stroke()
           }
           ctx.fillStyle = "black"
           let text = "mmHg";
           let width = ctx.measureText(text).width;
-          ctx.fillText("mmHg", -width / 2, radius * .9);
+          ctx.fillText("mmHg", -width / 2, this.radius * .9);
 
 
           ctx.beginPath();
@@ -177,10 +178,10 @@
           let dy = Math.sin(drawAngle);
           let px = -dy;
           let py = dx;
-          ctx.moveTo(Math.cos(drawAngle) * radius * a, Math.sin(drawAngle) * radius * a);
-          ctx.lineTo(Math.cos(drawAngle + Math.PI) * radius * e + px * radius * d, Math.sin(drawAngle + Math.PI) * radius * e + py * radius * d);
-          ctx.lineTo(Math.cos(drawAngle + Math.PI) * radius * e - px * radius * d, Math.sin(drawAngle + Math.PI) * radius * e - py * radius * d);
-          ctx.lineTo(Math.cos(drawAngle) * radius * a, Math.sin(drawAngle) * radius * a);
+          ctx.moveTo(Math.cos(drawAngle) * this.radius * a, Math.sin(drawAngle) * this.radius * a);
+          ctx.lineTo(Math.cos(drawAngle + Math.PI) * this.radius * e + px * this.radius * d, Math.sin(drawAngle + Math.PI) * this.radius * e + py * this.radius * d);
+          ctx.lineTo(Math.cos(drawAngle + Math.PI) * this.radius * e - px * this.radius * d, Math.sin(drawAngle + Math.PI) * this.radius * e - py * this.radius * d);
+          ctx.lineTo(Math.cos(drawAngle) * this.radius * a, Math.sin(drawAngle) * this.radius * a);
           ctx.fill();
 
           ctx.restore()
