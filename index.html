@@ -61,6 +61,10 @@
         maxPressure: 170,
         upRate: 2,
         downRate: .4,
+        pressureAcceleration:0,
+        pressureVelocity:0,
+        timeSinceLastPuff:0,
+        cuffOpen:false,
         running: false,
         radius: 200,
         x: document.getElementById("myAudio"),
@@ -93,6 +97,7 @@
           //this.up = false;
           this.pressure = 0;
           this.up = true;
+          //this.pressureAcceleration = 10;
         },
         tick() {
           if (this.running);
@@ -107,14 +112,34 @@
           this.canvas.width = size;
           this.canvas.height = size;
           this.time++;
+
+          if(this.running){
+            
+            
+            //this.pressureAcceleration = 10;
+          }
+
+          // if(this.pressureAcceleration > -10)
+          // {
+          //   this.pressureAcceleration -= 10 * .03;
+          // }
+          // else{
+          //   this.pressureAcceleration = -10;
+          // }
+          // this.pressureVelocity += this.pressureAcceleration * .03;
+          // this.pressure += this.pressureVelocity * .03;
           if (this.up) {
-            this.pressure += this.upRate;
+            //this.pressure += this.upRate;
+            let t = this.time/20;
+            let r = Math.abs(Math.cos(t)) + .1
+            this.pressure += r;
             if (this.pressure > this.maxPressure)
               this.up = false;
           }
           else {
             if (this.pressure < this.systolic && this.pressure > this.diastolic) {
               this.x.play();
+              console.log(this.x.currentTime);
             }
             if (this.pressure > 0)
               this.pressure -= this.downRate;
